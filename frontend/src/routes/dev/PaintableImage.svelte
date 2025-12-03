@@ -172,8 +172,8 @@
 		const lineWidth = Math.max(0.5, brushSize * pressure);
 		const pointerPosition = pointerPos(e);
 		const rect = pointerCanvas.getBoundingClientRect();
-		const px = (pointerPosition.x * pointerCanvas.width) / rect.width;
-		const py = (pointerPosition.y * pointerCanvas.height) / rect.height;
+		const px = pointerPosition.x;
+		const py = pointerPosition.y;
 		// draw pointer indicator
 		const pctx = pointerCtx;
 		pctx.clearRect(0, 0, pointerCanvas.width, pointerCanvas.height);
@@ -274,7 +274,10 @@
 					// random number
 					const random = Math.random();
 					if (random > 0.95) {
-						seeds.push({ x, y });
+						seeds.push({
+							x: x * (rect.width / canvas.width),
+							y: y * (rect.height / canvas.height)
+						});
 					}
 					if (x < minX) minX = x;
 					if (y < minY) minY = y;

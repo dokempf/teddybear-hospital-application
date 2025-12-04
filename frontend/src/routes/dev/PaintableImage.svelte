@@ -11,6 +11,8 @@
 		enabled = false
 	} = $props();
 
+	let src: string = $state(imageSrc);
+
 	let imgEl: HTMLImageElement | SVGElement;
 	let canvas: HTMLCanvasElement;
 	let pointerCanvas: HTMLCanvasElement;
@@ -340,24 +342,44 @@
 		formData.append('x', Math.round(minX * (imgEl.naturalWidth / rect.width)).toString());
 		formData.append('y', Math.round(minY * (imgEl.naturalHeight / rect.height)).toString());
 
-		let res = await fetch(`${PUBLIC_BACKEND_URL}/apply_fracture`, {
-			method: 'POST',
-			body: formData,
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('session')}`
+		let res: Response;
+		if (imageSrc.includes(PUBLIC_BACKEND_URL)) {
+			let formDataQueue = formData;
+			const splitUrl = imageSrc.split('/');
+			formDataQueue.append('choice', splitUrl.pop()!);
+			formDataQueue.append('job_id', splitUrl.pop()!);
+			formDataQueue.delete('image_file');
+
+			res = await fetch(`${PUBLIC_BACKEND_URL}/apply_fracture_queue`, {
+				method: 'POST',
+				body: formDataQueue,
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem('session')}`
+				}
+			});
+			if (res.ok) {
+				src = src + '?t=' + new Date().getTime(); // bust cache (hack)
 			}
-		});
-		if (res.ok) {
-			const blob = await res.blob();
-			const url = URL.createObjectURL(blob);
-			imageSrc = url;
-			// clear overlay
-			undoStack = [];
-			redoStack = [];
-			overlayDataUrl = null;
-			try {
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-			} catch {}
+		} else {
+			res = await fetch(`${PUBLIC_BACKEND_URL}/apply_fracture`, {
+				method: 'POST',
+				body: formData,
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem('session')}`
+				}
+			});
+			if (res.ok) {
+				const blob = await res.blob();
+				const url = URL.createObjectURL(blob);
+				imageSrc = url;
+				// clear overlay
+				undoStack = [];
+				redoStack = [];
+				overlayDataUrl = null;
+				try {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+				} catch {}
+			}
 		}
 	}
 
@@ -387,7 +409,7 @@
 		>
 	{/if}
 	{#if !active}
-		<img src={imageSrc} alt="Paintable" />
+		<img {src} alt="Paintable" />
 	{:else}
 		<button
 			class="overlay"

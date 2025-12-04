@@ -8,7 +8,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated, List, Tuple
 
 import bcrypt
+import cv2
 import jwt
+import numpy as np
 import qrcode
 import reportlab.pdfgen.canvas
 import requests
@@ -16,6 +18,7 @@ from anyio import SpooledTemporaryFile
 from fastapi import (
     APIRouter,
     BackgroundTasks,
+    Body,
     Depends,
     File,
     Form,
@@ -38,6 +41,8 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from PIL import Image
 from pydantic import BaseModel
+
+from backend.routes.fracture_tool4 import apply_fracture
 
 from ..config import config
 from .jobqueue import ConfirmJobEnum, Job, JobQueue
@@ -449,8 +454,50 @@ async def confirm_job(
     choice: Annotated[int, Query()],
     confirm: Annotated[ConfirmJobEnum, Query()],
     valid: Annotated[bool, Depends(validate_token)],
+    image: Annotated[UploadFile | None, File()] = None,
 ):
-    await job_queue.confirm_job(image_id, confirm, choice)
+    await job_queue.confirm_job(image_id, confirm, choice, image)
+    return JSONResponse(content={"status": "success"})
+
+
+@router.post("/apply_fracture_queue", response_class=JSONResponse)
+async def get_fracture_queue(
+    valid: Annotated[bool, Depends(validate_token)],
+    job_id: Annotated[int, Form()],
+    choice: Annotated[int, Form()],
+    overlay_file: Annotated[UploadFile, File()],
+    x: Annotated[int, Form()],
+    y: Annotated[int, Form()],
+    scale: Annotated[float, Form()],
+    noise: Annotated[int, Form()],
+) -> JSONResponse:
+    job = job_queue.awaiting_approval.get(job_id, None)
+    if job is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job ID not found",
+        )
+    results = job[1]
+    if choice < 0 or choice >= len(results):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid choice index",
+        )
+    image = results[choice]
+    await image.seek(0)
+    result = apply_fracture(
+        img=cv2.imdecode(np.frombuffer(await image.read(), np.uint8), cv2.IMREAD_COLOR),
+        overlay=cv2.imdecode(
+            np.frombuffer(await overlay_file.read(), np.uint8), cv2.IMREAD_UNCHANGED
+        ),
+        x=x,
+        y=y,
+        scale=scale,
+        noise_std=noise,
+    )
+    _, encoded_img = cv2.imencode(".png", result)
+    results[choice] = SpooledTemporaryFile()
+    await results[choice].write(encoded_img.tobytes())
     return JSONResponse(content={"status": "success"})
 
 

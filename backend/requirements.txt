@@ -6,3 +6,4 @@ toml
 passlib[bcrypt]
 pyjwt
 opencv-python
+bcrypt<5

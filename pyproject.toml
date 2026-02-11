@@ -52,3 +52,11 @@ packages = [
 testpaths = [
     "tests",
 ]
+addopts = "--cov=backend --cov-report=term-missing --cov-fail-under=100"
+
+[tool.coverage.run]
+source = ["backend"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

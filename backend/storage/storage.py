@@ -77,6 +77,7 @@ class SeafileStorage(Storage):
         the highest existing ID for user storage directories to ensure unique directory names.
         """
         self._id: int = 0
+        self._repo = None
         if not (username and password) and not account_token and not repo_token:
             raise ValueError(
                 "You must provide either: username and password or account token or repo token"

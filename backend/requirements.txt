@@ -3,7 +3,6 @@ qrcode[pil]
 seafileapi2
 reportlab
 toml
-passlib[bcrypt]
+passlib[argon2]
 pyjwt
 opencv-python
-bcrypt<5

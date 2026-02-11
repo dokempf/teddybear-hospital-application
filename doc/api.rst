@@ -327,7 +327,7 @@ Notes
 -----
 
 * All endpoints except ``/token``, ``/animal_types``, and ``/carousel`` require JWT authentication.  
-* The system uses **bcrypt** for password hashing and **JWT** for token encoding.  
+* The system uses **argon2** for password hashing and **JWT** for token encoding.  
 * QR code PDFs are generated with **ReportLab**.  
 * Uploaded images and results are managed via a custom **JobQueue** system.
 

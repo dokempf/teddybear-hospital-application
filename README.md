@@ -19,7 +19,7 @@ This project was completed by a group of six Computer Science Bsc. Students at H
 
 Configure the backend by filling up `config.toml.example` in the `backend` folder and renaming it to `config.toml`.
 Generate a secret key with `openssl rand -hex 32` and copy into SECRET_KEY.
-Generate a password for using the api with bcrypt with `python3 -c "from passlib.context import CryptContext; cc = CryptContext(schemes=['bcrypt'], deprecated='auto'); cc.hash(<password>)"` and past into `PASSWORD_HASH`. This password will be used by the front end and GPU to authenticate.
+Generate a password for using the api with argon2 with `python3 -c "from passlib.context import CryptContext; cc = CryptContext(schemes=['argon2'], deprecated='auto'); cc.hash(<password>)"` and past into `PASSWORD_HASH`. This password will be used by the front end and GPU to authenticate.
 To setup storage, see the section on the specific storage you are using.
 
 Configure the frontend by filling up `.env.example` in the `frontend` folder and renaming it to `.env`.

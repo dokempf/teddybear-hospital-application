@@ -7,7 +7,6 @@ from curses.ascii import isdigit
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, List, Tuple
 
-import bcrypt
 import cv2
 import jwt
 import numpy as np
@@ -57,9 +56,9 @@ class Token(BaseModel):
     token_type: str
 
 
-password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+password_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-"""Hashes a password using bcrypt.
+"""Hashes a password using argon2.
 
     Args:
         password (str): The password to hash.
@@ -88,9 +87,7 @@ def hash_password(password: str) -> str:
 
 @router.post("/token")
 async def login(password: Annotated[str, Form()]):
-    if not bcrypt.checkpw(
-        password.encode("utf-8"), config.password_hash.encode("utf-8")
-    ):
+    if not password_context.verify(password, config.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",

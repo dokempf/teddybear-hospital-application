@@ -9,12 +9,12 @@ Generate a secret key with the following command and copy it into the ``SECRET_K
 
    openssl rand -hex 32
 
-Generate a password for using the API with bcrypt using the following Python command, and paste the result into ``PASSWORD_HASH``.  
+Generate a password for using the API with argon2 using the following Python command, and paste the result into ``PASSWORD_HASH``.  
 This password will be used by the frontend and GPU to authenticate.
 
 .. code-block:: bash
 
-   python3 -c "from passlib.context import CryptContext; cc = CryptContext(schemes=['bcrypt'], deprecated='auto'); print(cc.hash('<password>'))"
+   python3 -c "from passlib.context import CryptContext; cc = CryptContext(schemes=['argon2'], deprecated='auto'); print(cc.hash('<password>'))"
 
 To set up storage, see the section on the specific storage backend you are using.
 

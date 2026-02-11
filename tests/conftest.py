@@ -5,9 +5,9 @@ from io import BytesIO
 from pathlib import Path
 from typing import IO
 
-import bcrypt
 import pytest
 from fastapi import FastAPI
+from passlib.context import CryptContext
 from PIL import Image
 
 from backend.storage import Storage
@@ -86,6 +86,7 @@ def _make_png_bytes(size=(16, 16), color=(120, 10, 10), mode="RGB") -> bytes:
 
 
 TEST_PASSWORD = "secret"
+PASSWORD_CONTEXT = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 @pytest.fixture()
@@ -95,9 +96,7 @@ def test_password() -> str:
 
 @pytest.fixture(scope="session")
 def config_file() -> Path:
-    password_hash = bcrypt.hashpw(
-        TEST_PASSWORD.encode("utf-8"), bcrypt.gensalt()
-    ).decode("utf-8")
+    password_hash = PASSWORD_CONTEXT.hash(TEST_PASSWORD)
     config_text = "\n".join(
         [
             "DEBUG = true",
